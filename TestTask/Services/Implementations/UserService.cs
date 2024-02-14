@@ -1,25 +1,30 @@
-﻿using TestTask.Models;
+﻿using TestTask.Data;
+using TestTask.Models;
 using TestTask.Services.Interfaces;
-using TestTask.Data;
 
 namespace TestTask.Services.Implementations
 {
-    public class OrderService : IOrderService
+    public class UserService : IUserService
     {
         private ApplicationDbContext context;
-        public OrderService(ApplicationDbContext _context)
+        public UserService(ApplicationDbContext _context)
         {
             context = _context;
         }
-        public async Task<Order> GetOrder()
+
+        public async Task<User> GetUser()
         {
-            Order result = context.Orders.Where(p => p.Price * p.Quantity == context.Orders.Max(o => o.Price * o.Quantity)).FirstOrDefault();
+            User result = context.Users.Where(p => p.Id == context.Orders
+            .GroupBy(o => o.UserId)
+            .OrderByDescending(o => o.Count())
+            .First().Key).First();
+
             return result;
         }
 
-        public async Task<List<Order>> GetOrders()
+        public async Task<List<User>> GetUsers()
         {
-            List<Order> result = context.Orders.Where(p => p.Quantity >= 10).ToList();
+            List<User> result = context.Users.Where(p => p.Status == Enums.UserStatus.Inactive).ToList();
             return result;
         }
     }
